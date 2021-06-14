@@ -137,23 +137,25 @@ export default function Home() {
                 META TAGS ({metaList.length})
               </h2>
               <table>
-                {metaList.map(([name, value]) => (
-                  <tr key={name} className="align-text-top">
-                    <td
-                      className={cn("text-white text-right px-2", {
-                        "text-cyan-100 bg-cyan-600 font-light":
-                          name.includes("twitter:"),
-                        "text-indigo-100 bg-indigo-600 font-light":
-                          name.includes("og:"),
-                        "text-white bg-black font-light":
-                          name.includes("apple"),
-                      })}
-                    >
-                      {name}
-                    </td>
-                    <td className="text-indigo-900 pl-2">{value}</td>
-                  </tr>
-                ))}
+                <tbody>
+                  {metaList.map(([name, value]) => (
+                    <tr key={name} className="align-text-top">
+                      <td
+                        className={cn("text-white text-right px-2", {
+                          "text-cyan-100 bg-cyan-600 font-light":
+                            name.includes("twitter:"),
+                          "text-indigo-100 bg-indigo-600 font-light":
+                            name.includes("og:"),
+                          "text-white bg-black font-light":
+                            name.includes("apple"),
+                        })}
+                      >
+                        {name}
+                      </td>
+                      <td className="text-indigo-900 pl-2">{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
             </div>
           )}

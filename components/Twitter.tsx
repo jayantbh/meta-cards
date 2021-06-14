@@ -49,7 +49,9 @@ const TwitterSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
         <div className="font-bold overflow-ellipsis whitespace-nowrap overflow-hidden">
           {meta["twitter:title"]}
         </div>
-        <Clamp lines={2}>{meta["twitter:description"]}</Clamp>
+        <Clamp lines={2}>
+          {meta["twitter:description"] || meta["description"] || ""}
+        </Clamp>
         <div style={{ color: "#8899A6" }}>{new URL(url).hostname}</div>
       </div>
     </div>
@@ -86,7 +88,9 @@ const TwitterSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => (
         className="px-4 py-3 box-border flex flex-col"
       >
         <div className="font-bold">{meta["twitter:title"]}</div>
-        <Clamp lines={3}>{meta["twitter:description"]}</Clamp>
+        <Clamp lines={3}>
+          {meta["twitter:description"] || meta["description"] || ""}
+        </Clamp>
         <div style={{ color: "#8899A6" }}>{new URL(url).hostname}</div>
       </div>
     </div>

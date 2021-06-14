@@ -45,7 +45,9 @@ const DiscordSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
         >
           {meta["twitter:title"]}
         </div>
-        <Clamp lines={3}>{meta["twitter:description"]}</Clamp>
+        <Clamp lines={3}>
+          {meta["twitter:description"] || meta["description"] || ""}
+        </Clamp>
       </div>
     </div>
     <img
