@@ -58,7 +58,7 @@ export default function Home() {
       <div className="flex justify-center items-center min-h-full">
         <div className="container px-12 flex flex-col items-center justify-center h-full">
           <h1 className="self-start text-7xl text-white leading-relaxed">
-            META CARDS
+            META CARDS (ALPHA)
           </h1>
 
           <div className="flex gap-3 flex-wrap leading-none">
