@@ -1,4 +1,5 @@
 const colors = require("tailwindcss/colors");
+const plugin = require("tailwindcss/plugin");
 
 module.exports = {
   purge: [
@@ -25,7 +26,18 @@ module.exports = {
     },
   },
   variants: {
-    extend: {},
+    extend: {
+      display: ["empty"],
+    },
   },
-  plugins: [require("tailwind-scrollbar")],
+  plugins: [
+    require("tailwind-scrollbar"),
+    plugin(function ({ addVariant, e }) {
+      addVariant("empty", ({ modifySelectors, separator }) => {
+        modifySelectors(({ className }) => {
+          return `.${e(`empty${separator}${className}`)}:empty`;
+        });
+      });
+    }),
+  ],
 };
