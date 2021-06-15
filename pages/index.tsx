@@ -7,9 +7,10 @@ import { Discord } from "../components/Discord";
 import { LinkedIn } from "../components/LinkedIn";
 import { Slack } from "../components/Slack";
 import { Twitter } from "../components/Twitter";
-import { MetaMap } from "../types";
 
 import { request } from "../utils/request";
+import { MetaTuple } from "./api/get-meta";
+import { Meta } from "../utils/meta";
 
 // https://www.npmjs.com/package/react-clamp-lines | NO IMAGE
 // https://jayant.dev/blog/framer-motion-essentials/ | LARGE IMAGE + AUTHOR + DATA FIELDS
@@ -21,9 +22,14 @@ const PRESET_URLS = [
   "http://jayant.tech/experiments/flip-animation-technique",
   "https://date-fns.org/v2.22.1/docs/format/",
   "https://fonts.google.com/specimen/Lato?query=lato",
+  "https://developer.android.com/google/play/billing/subscriptions",
+  "https://bakewiththepaws.wordpress.com/2021/06/08/mango-and-pumpkin-cookies-for-dogs/",
+  "https://javascript.info/custom-errors",
+  "http://localhost:3000",
 ];
+
 export default function Home() {
-  const [meta, setMeta] = useState<MetaMap>({});
+  const [meta, setMeta] = useState(new Meta({}));
   const [_url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -40,10 +46,11 @@ export default function Home() {
       if (loading) return;
       setLoading(true);
       try {
-        const { body: tuples } = await request("/api/get-meta?url=" + url);
-        console.log(typeof tuples, tuples);
+        const { body: tuples } = await request<{ body: MetaTuple[] }>(
+          "/api/get-meta?url=" + url
+        );
         const metaMap = Object.fromEntries(tuples);
-        setMeta(metaMap);
+        setMeta(new Meta(metaMap));
       } catch {}
 
       setLoading(false);
@@ -51,7 +58,7 @@ export default function Home() {
     [loading]
   );
 
-  const metaList = [...Object.entries(meta)];
+  const metaList = [...Object.entries(meta.map)];
 
   return (
     <div className="h-screen w-screen bg-gradient-to-tr from-rose-400 via-fuchsia-500 to-indigo-500 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">

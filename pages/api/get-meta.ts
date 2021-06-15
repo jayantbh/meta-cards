@@ -4,7 +4,7 @@ import { parse } from "node-html-parser";
 
 import { request } from "../../utils/request";
 
-type MetaTuple = [string | undefined, string | undefined];
+export type MetaTuple = [string | undefined, string | undefined];
 
 type Data = {
   body: MetaTuple[];
@@ -23,6 +23,9 @@ export default async (req: NextApiRequest, res: NextApiResponse<Data>) => {
 
   const title = body.querySelector("title").rawText;
   metas.push(["title", title]);
+
+  const author = body.querySelector("[rel=author]")?.rawText;
+  author && metas.push(["rel_author", author]);
 
   const faviconHref = body
     .querySelector("link[rel=icon]")

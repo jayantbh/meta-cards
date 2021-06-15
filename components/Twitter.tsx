@@ -1,10 +1,10 @@
 import React, { FC } from "react";
 import Clamp from "react-multiline-clamp";
-import { MetaMap } from "../types";
+import { Meta } from "../utils/meta";
 
-export const Twitter: FC<{ meta: MetaMap; url: string }> = (props) => {
-  console.log(props.meta["twitter:card"]);
-  switch (props.meta["twitter:card"]) {
+export const Twitter: FC<{ meta: Meta; url: string }> = (props) => {
+  console.log(props.meta.map["twitter:card"]);
+  switch (props.meta.map["twitter:card"]) {
     case "summary_large_image":
       return <TwitterSummaryLargeImage {...props} />;
     case "summary":
@@ -14,7 +14,7 @@ export const Twitter: FC<{ meta: MetaMap; url: string }> = (props) => {
   }
 };
 
-const TwitterSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
+const TwitterSummaryLargeImage: FC<{ meta: Meta; url: string }> = ({
   meta,
   url,
 }) => (
@@ -29,7 +29,7 @@ const TwitterSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
     <div
       className="w-full"
       style={{
-        backgroundImage: `url(${meta["twitter:image"] || meta["og:image"]})`,
+        backgroundImage: `url(${meta.image})`,
         aspectRatio: `2`,
         backgroundSize: `100%`,
         backgroundPosition: `center`,
@@ -47,18 +47,16 @@ const TwitterSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
         className="px-4 py-3 box-border flex flex-col"
       >
         <div className="font-bold overflow-ellipsis whitespace-nowrap overflow-hidden">
-          {meta["twitter:title"]}
+          {meta.title}
         </div>
-        <Clamp lines={2}>
-          {meta["twitter:description"] || meta["description"] || ""}
-        </Clamp>
+        <Clamp lines={2}>{meta.description}</Clamp>
         <div style={{ color: "#8899A6" }}>{new URL(url).hostname}</div>
       </div>
     </div>
   </div>
 );
 
-const TwitterSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => (
+const TwitterSummary: FC<{ meta: Meta; url: string }> = ({ meta, url }) => (
   <div
     style={{
       width: `440px`,
@@ -68,7 +66,7 @@ const TwitterSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => (
     className="flex overflow-hidden"
   >
     <img
-      src={meta["twitter:image"] || meta["og:image"]}
+      src={meta.image}
       style={{
         aspectRatio: `1`,
         width: `125px`,
@@ -87,10 +85,8 @@ const TwitterSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => (
         style={{ gap: `6px` }}
         className="px-4 py-3 box-border flex flex-col"
       >
-        <div className="font-bold">{meta["twitter:title"]}</div>
-        <Clamp lines={3}>
-          {meta["twitter:description"] || meta["description"] || ""}
-        </Clamp>
+        <div className="font-bold">{meta.title}</div>
+        <Clamp lines={3}>{meta.description}</Clamp>
         <div style={{ color: "#8899A6" }}>{new URL(url).hostname}</div>
       </div>
     </div>

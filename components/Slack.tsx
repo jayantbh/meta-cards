@@ -1,37 +1,31 @@
 import React, { FC } from "react";
 import { format } from "date-fns";
+import { Meta } from "../utils/meta";
 
-import { MetaMap } from "../types";
-
-export const Slack: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
-  const image = meta["twitter:image"] || meta["og:image"];
-  const ts = meta["article:published_time"] || meta["publish_date"];
-  const date = ts && format(new Date(ts), "MMM do, yyyy");
-
-  const hasDataFields = Boolean(meta["twitter:data1"] || meta["twitter:data2"]);
+export const Slack: FC<{ meta: Meta; url: string }> = ({ meta, url }) => {
+  const hasDataFields = Boolean(meta.dataFields);
 
   const isNotLargeCard =
-    meta["twitter:card"] !== "summary_large_card" || hasDataFields;
+    meta.map["twitter:card"] !== "summary_large_card" || hasDataFields;
 
-  if (!meta["description"]) return <div>Unable to render card preview</div>;
+  if (!meta.map["description"]) return <div>Unable to render card preview</div>;
 
   if (isNotLargeCard) return <SlackSummary meta={meta} url={url} />;
 
   return <SlackSummaryLargeImage meta={meta} url={url} />;
 };
 
-const SlackSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
+const SlackSummaryLargeImage: FC<{ meta: Meta; url: string }> = ({
   meta,
   url,
 }) => {
-  const image = meta["twitter:image"] || meta["og:image"];
-  const ts = meta["article:published_time"] || meta["publish_date"];
-  const date = ts && format(new Date(ts), "MMM do, yyyy");
+  const image = meta.image;
+  const date = meta.publishedDateReadable;
 
-  const hasDataFields = Boolean(meta["twitter:data1"] || meta["twitter:data2"]);
+  const hasDataFields = Boolean(meta.dataFields);
 
   const isNotLargeCard =
-    meta["twitter:card"] !== "summary_large_card" || hasDataFields;
+    meta.map["twitter:card"] !== "summary_large_card" || hasDataFields;
 
   return (
     <div
@@ -50,7 +44,7 @@ const SlackSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
       />
       <div style={{ lineHeight: `22px` }} className="mx-3">
         <div className="flex items-center gap-x-2">
-          <img src={meta["favicon"]} alt="favicon" className="h-4 w-4" />
+          <img src={meta.map["favicon"]} alt="favicon" className="h-4 w-4" />
           <div className="font-bold">{new URL(url).hostname}</div>
         </div>
         <div className="flex gap-x-3">
@@ -61,28 +55,18 @@ const SlackSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
               }}
               className="font-semibold"
             >
-              {meta["og:title"]}
+              {meta.title}
             </div>
             <div>
-              <div>{meta["description"]}</div>
+              <div>{meta.title}</div>
               {hasDataFields && (
                 <div className="flex">
-                  {!!meta["twitter:data1"] && (
+                  {meta.dataFields.map((field) => (
                     <div className="flex-grow">
-                      <div className="font-semibold">
-                        {meta["twitter:label1"]}
-                      </div>
-                      <div>{meta["twitter:data1"]}</div>
+                      <div className="font-semibold">{field.label}</div>
+                      <div>{field.value}</div>
                     </div>
-                  )}
-                  {!!meta["twitter:data2"] && (
-                    <div className="flex-grow">
-                      <div className="font-semibold">
-                        {meta["twitter:label2"]}
-                      </div>
-                      <div>{meta["twitter:data2"]}</div>
-                    </div>
-                  )}
+                  ))}
                 </div>
               )}
               <div
@@ -114,15 +98,9 @@ const SlackSummaryLargeImage: FC<{ meta: MetaMap; url: string }> = ({
   );
 };
 
-const SlackSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
-  const image = meta["twitter:image"] || meta["og:image"];
-  const ts = meta["article:published_time"] || meta["publish_date"];
-  const date = ts && format(new Date(ts), "MMM do, yyyy");
-
-  const hasDataFields = Boolean(meta["twitter:data1"] || meta["twitter:data2"]);
-
-  const isNotLargeCard =
-    meta["twitter:card"] !== "summary_large_card" || hasDataFields;
+const SlackSummary: FC<{ meta: Meta; url: string }> = ({ meta, url }) => {
+  const image = meta.image;
+  const date = meta.publishedDateReadable;
 
   return (
     <div
@@ -141,7 +119,7 @@ const SlackSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
       />
       <div style={{ lineHeight: `22px` }} className="mx-3">
         <div className="flex items-center gap-x-2">
-          <img src={meta["favicon"]} alt="favicon" className="h-4 w-4" />
+          <img src={meta.map["favicon"]} alt="favicon" className="h-4 w-4" />
           <div className="font-bold">{new URL(url).hostname}</div>
         </div>
         <div className="flex flex-col gap-x-3">
@@ -151,10 +129,10 @@ const SlackSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
             }}
             className="font-semibold"
           >
-            {meta["og:title"]}
+            {meta.title}
           </div>
           <div>
-            <div>{meta["description"]}</div>
+            <div>{meta.description}</div>
             <div
               style={{
                 color: `rgb(97, 96, 97)`,
@@ -164,18 +142,20 @@ const SlackSummary: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
               {date}
             </div>
           </div>
-          <div
-            style={{
-              boxShadow: `inset 0 0 0 1px rgb(0 0 0 / 10%)`,
-              backgroundImage: `url(${image})`,
-              backgroundSize: `100%`,
-              height: `min-content`,
-              maxWidth: `360px`,
-            }}
-            className="rounded overflow-hidden border border-gray-200"
-          >
-            <img src={image} alt="meta image" className="invisible" />
-          </div>
+          {image && (
+            <div
+              style={{
+                boxShadow: `inset 0 0 0 1px rgb(0 0 0 / 10%)`,
+                backgroundImage: `url(${image})`,
+                backgroundSize: `100%`,
+                height: `min-content`,
+                maxWidth: `360px`,
+              }}
+              className="rounded overflow-hidden border border-gray-200"
+            >
+              <img src={image} alt="meta image" className="invisible" />
+            </div>
+          )}
         </div>
       </div>
     </div>

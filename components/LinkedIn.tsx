@@ -1,8 +1,8 @@
 import React, { FC } from "react";
-import { MetaMap } from "../types";
+import { Meta } from "../utils/meta";
 
-export const LinkedIn: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
-  const image = meta["twitter:image"] || meta["og:image"];
+export const LinkedIn: FC<{ meta: Meta; url: string }> = ({ meta, url }) => {
+  const image = meta.image;
   return (
     <div
       style={{
@@ -34,7 +34,7 @@ export const LinkedIn: FC<{ meta: MetaMap; url: string }> = ({ meta, url }) => {
           className="box-border flex flex-col"
         >
           <div className="text-base font-semibold overflow-ellipsis whitespace-nowrap overflow-hidden">
-            {meta["twitter:title"] || meta["title"]}
+            {meta.title}
           </div>
           <div
             style={{
