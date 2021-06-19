@@ -3,7 +3,6 @@ import Clamp from "react-multiline-clamp";
 import { Meta } from "../utils/meta";
 
 export const Twitter: FC<{ meta: Meta; url: string }> = (props) => {
-  console.log(props.meta.map["twitter:card"]);
   switch (props.meta.map["twitter:card"]) {
     case "summary_large_image":
       return <TwitterSummaryLargeImage {...props} />;

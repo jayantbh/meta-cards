@@ -9,8 +9,9 @@ import { Slack } from "../components/Slack";
 import { Twitter } from "../components/Twitter";
 
 import { request } from "../utils/request";
-import { MetaTuple } from "./api/get-meta";
+import { GetMetaResponse, OEmbed } from "./api/get-meta";
 import { Meta } from "../utils/meta";
+import { safeHTML } from "../utils/dom";
 
 // https://www.npmjs.com/package/react-clamp-lines | NO IMAGE
 // https://jayant.dev/blog/framer-motion-essentials/ | LARGE IMAGE + AUTHOR + DATA FIELDS
@@ -25,6 +26,7 @@ const PRESET_URLS = [
   "https://developer.android.com/google/play/billing/subscriptions",
   "https://bakewiththepaws.wordpress.com/2021/06/08/mango-and-pumpkin-cookies-for-dogs/",
   "https://javascript.info/custom-errors",
+  "https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptions/get",
   "http://localhost:3000",
 ];
 
@@ -46,19 +48,17 @@ export default function Home() {
       if (loading) return;
       setLoading(true);
       try {
-        const { body: tuples } = await request<{ body: MetaTuple[] }>(
+        const { body } = await request<GetMetaResponse>(
           "/api/get-meta?url=" + url
         );
-        const metaMap = Object.fromEntries(tuples);
-        setMeta(new Meta(metaMap));
+        const metaMap = Object.fromEntries(body.metas);
+        setMeta(new Meta(metaMap, body.oEmbed));
       } catch {}
 
       setLoading(false);
     },
     [loading]
   );
-
-  const metaList = [...Object.entries(meta.map)];
 
   return (
     <div className="h-screen w-screen bg-gradient-to-tr from-rose-400 via-fuchsia-500 to-indigo-500 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">
@@ -138,30 +138,76 @@ export default function Home() {
             )}
           </div>
 
-          {metaList.length > 0 && (
+          {meta.entries.length > 0 && (
             <div className="py-12 w-full">
               <h2 className="self-start text-5xl text-white leading-relaxed">
-                META TAGS ({metaList.length})
+                META TAGS ({meta.entries.length})
               </h2>
               <table>
                 <tbody>
-                  {metaList.map(([name, value]) => (
-                    <tr key={name} className="align-text-top">
-                      <td
-                        className={cn("text-white text-right px-2", {
-                          "text-cyan-100 bg-cyan-600 font-light":
-                            name.includes("twitter:"),
-                          "text-indigo-100 bg-indigo-600 font-light":
-                            name.includes("og:"),
-                          "text-white bg-black font-light":
-                            name.includes("apple"),
-                        })}
-                      >
-                        {name}
-                      </td>
-                      <td className="text-indigo-900 pl-2">{value}</td>
-                    </tr>
-                  ))}
+                  {meta.entries.map(([name, value]) => {
+                    const isThemeColor = name === "theme-color";
+                    return (
+                      <tr key={name} className="align-text-top">
+                        <td
+                          className={cn("text-white text-right px-2", {
+                            "text-cyan-100 bg-cyan-600 font-light":
+                              name.includes("twitter:"),
+                            "text-indigo-100 bg-indigo-600 font-light":
+                              name.includes("og:"),
+                            "text-white bg-black font-light":
+                              name.includes("apple"),
+                          })}
+                        >
+                          {name}
+                        </td>
+                        <td className="text-indigo-900 pl-2">
+                          {isThemeColor ? (
+                            <div className="relative w-fit pr-2">
+                              {value}
+                              <div
+                                className="h-4 w-12 rounded-full absolute left-full top-0 bottom-0 m-auto"
+                                style={{ backgroundColor: value }}
+                              />
+                            </div>
+                          ) : (
+                            value
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {meta.oEmbed && (
+            <div className="py-12 w-full">
+              <h2 className="self-start text-5xl text-white leading-relaxed">
+                Open Embed ({meta.oEmbedEntries.length})
+              </h2>
+              <table>
+                <tbody>
+                  {meta.oEmbedEntries.map(([name, value]) => {
+                    const isHtml = name === "html";
+
+                    return (
+                      <tr key={name} className="align-text-top">
+                        <td className={cn("text-white text-right px-2")}>
+                          {isHtml ? `${name} (parsed)` : name}
+                        </td>
+                        <td
+                          className="text-indigo-900 pl-2"
+                          style={{
+                            wordBreak: "break-word",
+                            whiteSpace: "pre-line",
+                          }}
+                        >
+                          {isHtml ? safeHTML(value) : value}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -4,8 +4,7 @@ import { Meta } from "../utils/meta";
 
 export const Discord: FC<{ meta: Meta; url: string }> = (props) => {
   // The twitter title check seems to be the only thing preventing a card from rendering
-  if (!props.meta.description && !props.meta.map["twitter:title"])
-    return <div>Unable to render card preview</div>;
+  if (!props.meta.title) return <div>Unable to render card preview</div>;
 
   switch (props.meta.map["twitter:card"]) {
     case "summary_large_image":
@@ -40,7 +39,7 @@ const DiscordSummaryLargeImage: FC<{ meta: Meta; url: string }> = ({
         <div className="text-xs mt-2 empty:hidden">
           {meta.map["og:site_name"]}
         </div>
-        <div className="font-semibold empty:hidden">{meta.map.rel_author}</div>
+        <div className="font-semibold empty:hidden">{meta.author}</div>
         <div
           className="font-semibold text-base"
           style={{

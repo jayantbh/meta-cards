@@ -1,16 +1,28 @@
 import { format } from "date-fns";
 
+import { OEmbed } from "../pages/api/get-meta";
 import { DataField, MetaMap } from "../types";
 
 export class Meta {
   map: MetaMap;
+  oEmbed?: OEmbed;
 
-  constructor(metaMap: MetaMap) {
+  constructor(metaMap: MetaMap, oEmbed?: OEmbed) {
     this.map = metaMap;
+    this.oEmbed = oEmbed;
+  }
+
+  public get entries() {
+    return Object.entries(this.map);
+  }
+
+  public get oEmbedEntries() {
+    return Object.entries(this.oEmbed || {});
   }
 
   public get title(): string {
     return (
+      this.oEmbed?.title ||
       this.map["twitter:title"] ||
       this.map["twitter:text:title"] ||
       this.map["og:title"] ||
@@ -70,5 +82,9 @@ export class Meta {
     return this.publishedDate
       ? format(new Date(this.publishedDate), "MMM do, yyyy")
       : null;
+  }
+
+  public get author(): string {
+    return this.oEmbed?.author_name || this.map.author || "";
   }
 }

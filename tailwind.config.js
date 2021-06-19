@@ -10,6 +10,9 @@ module.exports = {
   darkMode: false,
   theme: {
     extend: {
+      spacing: {
+        fit: "fit-content",
+      },
       colors: {
         transparent: "transparent",
         current: "currentColor",

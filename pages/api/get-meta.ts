@@ -6,11 +6,28 @@ import { request } from "../../utils/request";
 
 export type MetaTuple = [string | undefined, string | undefined];
 
-type Data = {
-  body: MetaTuple[];
+export type OEmbed = {
+  version?: string;
+  provider_name?: string;
+  provider_url?: string;
+  author_name?: string;
+  author_url?: string;
+  title?: string;
+  type?: string;
+  html?: string;
 };
 
-export default async (req: NextApiRequest, res: NextApiResponse<Data>) => {
+export type GetMetaResponse = {
+  body: {
+    metas: MetaTuple[];
+    oEmbed?: OEmbed;
+  };
+};
+
+export default async (
+  req: NextApiRequest,
+  res: NextApiResponse<GetMetaResponse>
+) => {
   const response = await request(req.query.url as string);
 
   const body = parse(response);
@@ -24,8 +41,14 @@ export default async (req: NextApiRequest, res: NextApiResponse<Data>) => {
   const title = body.querySelector("title").rawText;
   metas.push(["title", title]);
 
-  const author = body.querySelector("[rel=author]")?.rawText;
-  author && metas.push(["rel_author", author]);
+  const oEmbedHref = body
+    .querySelector("[rel=alternate][type=application/json+oembed]")
+    ?.getAttribute("href");
+
+  let oEmbed: OEmbed | undefined = undefined;
+  if (oEmbedHref) {
+    oEmbed = await request(oEmbedHref);
+  }
 
   const faviconHref = body
     .querySelector("link[rel=icon]")
@@ -35,5 +58,5 @@ export default async (req: NextApiRequest, res: NextApiResponse<Data>) => {
     metas.push(["favicon", favicon]);
   }
 
-  res.status(200).json({ body: metas });
+  res.status(200).json({ body: { metas, oEmbed } });
 };

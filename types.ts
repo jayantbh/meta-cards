@@ -52,8 +52,7 @@ type MetaName =
   | "msapplication-window"
   | "msapplication-tooltip"
   | "msapplication-task"
-  | "next-head-count"
-  | "rel_author";
+  | "next-head-count";
 
 export type DataField = { label: string; value: string };
 
