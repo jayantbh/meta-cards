@@ -16,7 +16,7 @@ export class Meta {
     return Object.entries(this.map);
   }
 
-  public get oEmbedEntries() {
+  public get oEmbedEntries(): [string, string | undefined][] {
     return Object.entries(this.oEmbed || {});
   }
 
