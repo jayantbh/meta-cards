@@ -1,3 +1,13 @@
+class RequestError extends Error {
+  meta: Response;
+
+  constructor(message: string, meta: Response) {
+    super(message);
+    this.name = 'RequestError';
+    this.meta = meta;
+  }
+}
+
 export const request = async <T = any>(
   input: RequestInfo,
   init?: RequestInit | undefined
@@ -5,7 +15,7 @@ export const request = async <T = any>(
   await fetch(input, init)
     .then((r) => {
       if (r.status < 400) return r;
-      throw new Error("REQUEST_ERROR: " + r.status);
+      throw new RequestError("REQUEST_ERROR: " + r.status, r);
     })
     .then((r) => {
       if (r.headers.get("Content-Type")?.includes("application/json"))
