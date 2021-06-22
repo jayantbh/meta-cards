@@ -1,5 +1,3 @@
-import Head from "next/head";
-import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
 
@@ -12,6 +10,9 @@ import { request } from "../utils/request";
 import { GetMetaResponse, OEmbed } from "./api/get-meta";
 import { Meta } from "../utils/meta";
 import { safeHTML } from "../utils/dom";
+import { useEffectOnce } from "../hooks/use-effect-once";
+import { getURLFromParams, setURLInParams } from "../utils/location";
+import { useHistoryChange } from "../hooks/use-history-change";
 
 // https://www.npmjs.com/package/react-clamp-lines | NO IMAGE
 // https://jayant.dev/blog/framer-motion-essentials/ | LARGE IMAGE + AUTHOR + DATA FIELDS
@@ -32,7 +33,7 @@ const PRESET_URLS = [
 
 export default function Home() {
   const [meta, setMeta] = useState(new Meta({}));
-  const [_url, setUrl] = useState("");
+  const [_url, _setUrl] = useState(getURLFromParams());
   const [loading, setLoading] = useState(false);
 
   const url = useMemo(() => {
@@ -43,6 +44,11 @@ export default function Home() {
     }
   }, [_url]);
 
+  const setUrl = useCallback((link: string) => {
+    _setUrl(link);
+    setURLInParams(link);
+  }, []);
+
   const fetchMeta = useCallback(
     async (url: string) => {
       if (loading) return;
@@ -51,6 +57,7 @@ export default function Home() {
         const { body } = await request<GetMetaResponse>(
           "/api/get-meta?url=" + url
         );
+        if (!body.metas) return;
         const metaMap = Object.fromEntries(body.metas);
         setMeta(new Meta(metaMap, body.oEmbed));
       } catch {}
@@ -59,6 +66,20 @@ export default function Home() {
     },
     [loading]
   );
+
+  useEffectOnce(
+    () => {
+      fetchMeta(url);
+    },
+    true,
+    [url]
+  );
+
+  useHistoryChange(() => {
+    const url = getURLFromParams();
+    _setUrl(url);
+    fetchMeta(url);
+  });
 
   return (
     <div className="h-screen w-screen bg-gradient-to-tr from-rose-400 via-fuchsia-500 to-indigo-500 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">
@@ -69,7 +90,7 @@ export default function Home() {
           </h1>
 
           <div className="flex gap-3 flex-wrap leading-none">
-            {PRESET_URLS.map((link) => (
+            {PRESET_URLS.map(link => (
               <div
                 key={link}
                 className="px-2 py-1 bg-rose-200 hover:bg-rose-300 select-none cursor-pointer transition-colors"
@@ -85,7 +106,7 @@ export default function Home() {
 
           <form
             className="py-3 w-full flex"
-            onSubmit={(e) => {
+            onSubmit={e => {
               e.preventDefault();
               fetchMeta(url);
             }}
@@ -104,40 +125,45 @@ export default function Home() {
               className="w-full py-1 px-2"
               placeholder="type a url to fetch meta data for"
               value={_url}
-              onInput={(e) => setUrl(e.currentTarget.value)}
+              onInput={e => setUrl(e.currentTarget.value)}
             />
           </form>
 
-          <div className="w-full flex gap-x-3 justify-center card-container">
+          <div
+            className="w-full flex gap-x-3 justify-center card-container"
+            style={{ minHeight: loading ? "440px" : 0 }}
+          >
             {!!loading && (
-              <div className="flex gap-2">
-                <div className="h-2 w-2 animate-ping bg-indigo-700 rounded-full" />
-                <div className="h-2 w-2 animate-ping bg-indigo-700 rounded-full" />
-                <div className="h-2 w-2 animate-ping bg-indigo-700 rounded-full" />
+              <div className="flex gap-2 m-auto">
+                <div className="h-2 w-2 animate-ping bg-white rounded-full" />
+                <div className="h-2 w-2 animate-ping bg-white rounded-full" />
+                <div className="h-2 w-2 animate-ping bg-white rounded-full" />
               </div>
             )}
             {!!url && !loading && (
-              <div className="flex gap-x-3 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent pb-3">
-                <div className="bg-white shadow-md rounded-lg p-4">
+              <div
+                className="flex gap-x-3 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent pb-3"
+                style={{ maxHeight: "440px" }}
+              >
+                <div className="bg-white shadow-md rounded-lg p-4 flex-shrink-0 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">
                   <div className="text-2xl mb-3">Twitter</div>
                   <Twitter meta={meta} url={url} />
                 </div>
-                <div className="bg-white shadow-md rounded-lg p-4">
+                <div className="bg-white shadow-md rounded-lg p-4 flex-shrink-0 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">
                   <div className="text-2xl mb-3">LinkedIn</div>
                   <LinkedIn meta={meta} url={url} />
                 </div>
-                <div className="bg-white shadow-md rounded-lg p-4">
+                <div className="bg-white shadow-md rounded-lg p-4 flex-shrink-0 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">
                   <div className="text-2xl mb-3">Slack</div>
                   <Slack meta={meta} url={url} />
                 </div>
-                <div className="bg-white shadow-md rounded-lg p-4">
+                <div className="bg-white shadow-md rounded-lg p-4 flex-shrink-0 overflow-auto scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-transparent">
                   <div className="text-2xl mb-3">Discord</div>
                   <Discord meta={meta} url={url} />
                 </div>
               </div>
             )}
           </div>
-
           {meta.entries.length > 0 && (
             <div className="py-12 w-full">
               <h2 className="self-start text-5xl text-white leading-relaxed">
@@ -203,7 +229,7 @@ export default function Home() {
                             whiteSpace: "pre-line",
                           }}
                         >
-                          {isHtml ? safeHTML(value) : value}
+                          {isHtml ? safeHTML(value as string) : value}
                         </td>
                       </tr>
                     );

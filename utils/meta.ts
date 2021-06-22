@@ -16,7 +16,7 @@ export class Meta {
     return Object.entries(this.map);
   }
 
-  public get oEmbedEntries(): [string, string | undefined][] {
+  public get oEmbedEntries(): [string, string | number | undefined][] {
     return Object.entries(this.oEmbed || {});
   }
 
@@ -85,6 +85,11 @@ export class Meta {
   }
 
   public get author(): string {
-    return this.oEmbed?.author_name || this.map.author || "";
+    return (
+      this.oEmbed?.author_name ||
+      this.oEmbed?.author_name ||
+      this.map.author ||
+      ""
+    );
   }
 }

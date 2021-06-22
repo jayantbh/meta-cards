@@ -15,12 +15,16 @@ export type OEmbed = {
   title?: string;
   type?: string;
   html?: string;
+  thumbnail_url?: string;
+  thumbnail_height?: number;
+  thumbnail_width?: number;
 };
 
 export type GetMetaResponse = {
   body: {
-    metas: MetaTuple[];
+    metas?: MetaTuple[];
     oEmbed?: OEmbed;
+    err?: any;
   };
 };
 
@@ -28,35 +32,41 @@ export default async (
   req: NextApiRequest,
   res: NextApiResponse<GetMetaResponse>
 ) => {
-  const response = await request(req.query.url as string);
+  try {
+    const response = await request(req.query.url as string);
 
-  const body = parse(response);
-  const metas = [...body.querySelectorAll("meta")]
-    .map<MetaTuple>((el) => [
-      el.getAttribute("name") || el.getAttribute("property"),
-      el.getAttribute("content"),
-    ])
-    .filter(([name]) => !!name?.length);
+    const body = parse(response);
+    const metas = [...body.querySelectorAll("meta")]
+      .map<MetaTuple>(el => [
+        el.getAttribute("name") || el.getAttribute("property"),
+        el.getAttribute("content"),
+      ])
+      .filter(([name]) => !!name?.length);
 
-  const title = body.querySelector("title").rawText;
-  metas.push(["title", title]);
+    const title = body.querySelector("title").rawText;
+    metas.push(["title", title]);
 
-  const oEmbedHref = body
-    .querySelector("[rel=alternate][type=application/json+oembed]")
-    ?.getAttribute("href");
+    const oEmbedHref = body
+      .querySelector("[rel=alternate][type=application/json+oembed]")
+      ?.getAttribute("href");
 
-  let oEmbed: OEmbed | undefined = undefined;
-  if (oEmbedHref) {
-    oEmbed = await request(oEmbedHref);
+    let oEmbed: OEmbed | undefined = undefined;
+    if (oEmbedHref) {
+      try {
+        oEmbed = await request(oEmbedHref);
+      } catch {}
+    }
+
+    const faviconHref = body
+      .querySelector("link[rel=icon]")
+      ?.getAttribute("href");
+    if (faviconHref) {
+      const favicon = new URL(faviconHref || "", req.query.url as string).href;
+      metas.push(["favicon", favicon]);
+    }
+
+    res.status(200).json({ body: { metas, oEmbed } });
+  } catch (e) {
+    res.status(e.status || 400).json({ body: { err: e } });
   }
-
-  const faviconHref = body
-    .querySelector("link[rel=icon]")
-    ?.getAttribute("href");
-  if (faviconHref) {
-    const favicon = new URL(faviconHref || "", req.query.url as string).href;
-    metas.push(["favicon", favicon]);
-  }
-
-  res.status(200).json({ body: { metas, oEmbed } });
 };
